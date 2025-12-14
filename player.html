@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MP3 Плеер</title>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #0b0f14;
+      color: #e8edf4;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      width: min(560px, calc(100vw - 32px));
+      background: #121826;
+      border: 1px solid #23304a;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .track {
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70%;
+    }
+
+    .time {
+      font-size: 13px;
+      opacity: .9;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progressWrap {
+      margin: 6px 0 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      border: 1px solid #2b3a5a;
+      background: #182238;
+      color: #e8edf4;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    button:hover { background: #1b2a46; }
+    button:active { transform: translateY(1px); }
+
+    .vol {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .vol label {
+      white-space: nowrap;
+      font-size: 13px;
+      opacity: .9;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: .9;
+    }
+
+    .hint {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed #2b3a5a;
+      font-size: 13px;
+      color: #cfe0ff;
+      line-height: 1.35;
+    }
+
+    .small {
+      margin-top: 6px;
+      font-size: 12px;
+      opacity: .7;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>MP3-плеер</h1>
+
+    <!-- ВАШ ТРЕК -->
+    <audio id="audio" preload="metadata"
+      src="audio/How%20many%20paths%20we%20meet.mp3">
+    </audio>
+
+    <div class="meta">
+      <div class="track">How many paths we meet</div>
+      <div class="time" id="time">00:00 / 00:00</div>
+    </div>
+
+    <div class="progressWrap">
+      <input id="progress" type="range" min="0" max="1000" value="0">
+    </div>
+
+    <div class="row">
+      <button id="play">▶ Плей</button>
+      <button id="pause">⏸ Пауза</button>
+
+      <div class="vol">
+        <label for="volume">Громкость</label>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8">
+      </div>
+    </div>
+
+    <div class="status" id="status">
+      Готово. Нажмите «Плей».
+    </div>
+
+    <div class="hint">
+      Можно открыть другую вкладку или приложение —  
+      музыка продолжит играть в фоне.
+      <div class="small">
+        Звук запускается только после клика (ограничение браузеров).
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const audio = document.getElementById("audio");
+    const playBtn = document.getElementById("play");
+    const pauseBtn = document.getElementById("pause");
+    const volume = document.getElementById("volume");
+    const progress = document.getElementById("progress");
+    const time = document.getElementById("time");
+    const status = document.getElementById("status");
+
+    function format(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    audio.volume = volume.value;
+
+    playBtn.onclick = async () => {
+      try {
+        await audio.play();
+        status.textContent = "Играет… Можно переключаться на другие вкладки.";
+      } catch {
+        status.textContent = "Браузер заблокировал звук. Нажмите ещё раз.";
+      }
+    };
+
+    pauseBtn.onclick = () => {
+      audio.pause();
+      status.textContent = "Пауза.";
+    };
+
+    volume.oninput = () => {
+      audio.volume = volume.value;
+    };
+
+    audio.ontimeupdate = () => {
+      if (!audio.duration) return;
+      time.textContent =
+        format(audio.currentTime) + " / " + format(audio.duration);
+      progress.value =
+        (audio.currentTime / audio.duration) * 1000;
+    };
+
+    progress.oninput = () => {
+      if (!audio.duration) return;
+      audio.currentTime =
+        (progress.value / 1000) * audio.duration;
+    };
+
+    audio.onended = () => {
+      status.textContent = "Трек закончился.";
+    };
+  </script>
+</body>
+</html>
